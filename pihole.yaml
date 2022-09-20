@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dnsmasq-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  labels:
+    app: pihole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      containers:
+      - name: pihole
+        image: pihole/pihole
+        ports:
+        - name: web
+          containerPort: 80
+          hostPort: 8001
+          hostIP: <YOUR LAN IP HERE>
+        - name: dns
+          containerPort: 53
+          hostPort: 53
+          hostIP: <YOUR LAN IP HERE>
+#        - name: dhcp
+#          containerPort: 67
+#          hostPort: 67
+#          hostIP: <YOUR LAN IP HERE>
+        env:
+        - name: TZ
+          value: America/New_York
+        - name: DNS1
+          value: 1.1.1.1
+        - name: DNS2
+          value: 8.8.8.8
+        - name: WEBPASSWORD
+          value: test123 # Highly recommended to change this to a secret, or be stored elsewhere!
+        - name: FTLCONF_LOCAL_IPV4
+          value: <YOUR LAN IP HERE>
+        volumeMounts:
+        - mountPath: /etc/pihole/
+          name: pihole-data
+        - mountPath: /etc/dnsmasq.d/
+          name: dnsmasq-data
+        securityContext:
+          allowPrivilegeEscalation: true
+      dnsConfig:
+        nameservers:
+          - 127.0.0.1
+          - 8.8.8.8
+      volumes:
+      - name: pihole-data
+        persistentVolumeClaim:
+          claimName: pihole-data
+      - name: dnsmasq-data
+        persistentVolumeClaim:
+          claimName: dnsmasq-data
