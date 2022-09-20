@@ -12,6 +12,12 @@ The firewall/QoS is intended to be managed by `firehol` and `fireqos`, as docume
 
 https://kubesail.com/blog/k3s-firehol-router
 
+This has been tested and verified using Ubuntu Server 20.04 (22.04 uses cgroups v2 by default, which may cause issues), and k3s:
+
+https://ubuntu.com/download/server
+
+https://k3s.io/
+
 # Notes
 
 * Make sure that your LAN interface is NOT configured with a gateway, because it IS the gateway! I forgot this and was stuck for a while :)
