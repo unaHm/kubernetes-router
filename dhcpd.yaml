@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dhcpd
+  labels:
+    app: dhcpd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dhcpd
+  template:
+    metadata:
+      labels:
+        app: dhcpd
+    spec:
+      hostNetwork: true
+      containers:
+      - name: dhcpd
+        image: networkboot/dhcpd
+        ports:
+        - name: dhcp
+          containerPort: 67
+          hostPort: 67
+          hostIP: <YOUR LAN INTERFACE IP HERE>
+          protocol: UDP
+        volumeMounts:
+        - mountPath: /data/dhcpd.conf
+          subPath: dhcpd.conf
+          name: dhcpd-config
+      volumes:
+      - name: dhcpd-config
+        configMap:
+          name: dhcpd-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dhcpd-config
+data:
+  dhcpd.conf: |
+    subnet <YOUR LAN SUBNET .0> netmask 255.255.255.0 {
+      range <YOUR LAN STARTING IP> <YOUR LAN ENDING IP>;
+      option subnet-mask 255.255.255.0;
+      option broadcast-address <YOUR LAN SUBNET .255>;
+      option routers <YOUR LAN GATEWAY IP, SAME AS LAN IP>;
+      option domain-name-servers <YOUR LAN IP IF RUNNING DNS ON THIS MACHINE>;
+    }
+    
+    # DHCP
+    authoritative;
+    default-lease-time 600;
+    max-lease-time 7200;
+    
+    # DNS
+    option domain-name-servers <YOUR LAN IP IF RUNNING DNS ON THIS MACHINE>;
+    ddns-update-style none;
+    
+    # PXE
+    option bootfile-name "pxelinux.0";
+    next-server <YOUR LAN IP IF RUNNING PXE/TFTP ON THIS MACHINE>;
+    
+    # Logging
+    log-facility local7;
