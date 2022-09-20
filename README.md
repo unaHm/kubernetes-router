@@ -16,3 +16,4 @@ https://kubesail.com/blog/k3s-firehol-router
 
 * Make sure that your LAN interface is NOT configured with a gateway, because it IS the gateway! I forgot this and was stuck for a while :)
 * I intend to eventually wrap this into a script so that it can be used to deploy on a fresh OS installation
+* There are certain directories missing for some of the applications, particularly TFTP. Be sure to create these and install the required files so PXE booting can take place
